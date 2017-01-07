@@ -1,0 +1,52 @@
+#!/usr/bin/python
+import os
+import sys
+import json
+import argparse
+import configparser
+from html.parser import HTMLParser
+import encodings.idna
+PACKAGE_PARENT = '..'
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)) + '/')
+
+parser = argparse.ArgumentParser(description="Start Queue Consumer")
+
+parser.add_argument('-c', '--config',
+                    dest="config",
+                    action='store',
+                    default='/etc/hephaestus/config.conf',
+                    help='Absolute path to configuration file')
+
+args = parser.parse_args()
+
+from hephaestus.conf import settings, processor_setup
+from hephaestus import worker
+
+
+def set_config(config):
+    aws_credentials = config['AWS_CREDENTIALS']
+    setattr(settings, 'AWS_KEY', aws_credentials.get('aws_key'))
+    setattr(settings, 'AWS_SECRET', aws_credentials.get('aws_secret'))
+    setattr(settings, 'AWS_QUEUE_NAME', aws_credentials.get('queue_name'))
+    setattr(settings, 'AWS_REGION', aws_credentials.get('region_name'))
+
+    worker_settings = config['WORKER_SETTINGS']
+    setattr(settings, 'QUEUE_WORKERS', worker_settings.getint('queue_workers'))
+    setattr(settings, 'MESSAGE_PROCESSOR_WORKERS', worker_settings.getint('message_processor_workers'))
+
+
+def set_message_processors(config):
+    location = config['GENERAL']
+    message_transport_conf = json.load(open(location.get('message_transport_conf')))
+    Transport = processor_setup[message_transport_conf['type']]
+    transport = Transport(conf=message_transport_conf)
+    transport.load()
+    return transport
+
+if __name__ == '__main__':
+    config = configparser.ConfigParser()
+    config.read(args.config)
+    set_config(config)
+    transport = set_message_processors(config)
+    worker.start_workers(transport=transport)
