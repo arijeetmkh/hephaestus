@@ -8,7 +8,7 @@ class Settings(object):
 
 settings = Settings()
 
-processor_setup = {
+transport_setup = {
     "django": DjangoTransport,
 }
 
