@@ -138,5 +138,3 @@ ENV/
 ### IPythonNotebook template
 # Temporary data
 .ipynb_checkpoints/
-
-*.conf
