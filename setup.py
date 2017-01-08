@@ -1,5 +1,6 @@
-from distutils.core import setup
+#!/usr/bin/env python
 
+from setuptools import setup
 
 setup(
     name='hephaestus',
@@ -9,6 +10,6 @@ setup(
     author_email='arijeet.mkh@gmail.com',
     url="https://github.com/arijeetmkh/hephaestus",
     packages=['hephaestus'],
-    requires=['boto3'],
+    install_requires=['boto3'],
     scripts=['hephaestus/startup.py']
 )
