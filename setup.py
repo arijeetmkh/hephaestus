@@ -11,5 +11,7 @@ setup(
     url="https://github.com/arijeetmkh/hephaestus",
     packages=['hephaestus'],
     install_requires=['boto3'],
-    scripts=['bin/hephaestus']
+    scripts=['bin/hephaestus'],
+    include_package_data=True,
+    zip_safe=False
 )

@@ -4,11 +4,23 @@ import sys
 import json
 import argparse
 import configparser
+from pkg_resources import Requirement, resource_filename
 
 
 PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)) + '/')
+
+config_file = None
+for loc in os.curdir, os.path.expanduser("~"), "/etc/hephaestus":
+    path = os.path.join(loc, "hephaestus.conf")
+    try:
+        with open(path) as fp:
+            config_file = path
+            break
+    except FileNotFoundError:
+        pass
+
 
 import hephaestus
 
@@ -19,7 +31,7 @@ parser.add_argument('--version', action='version', version='%(prog)s v' + hephae
 parser.add_argument('-c', '--config',
                     dest="config",
                     action='store',
-                    default='/etc/hephaestus/config.conf',
+                    default=config_file or resource_filename(Requirement.parse("hephaestus"), "hephaestus.conf"),
                     help='Absolute path to configuration file')
 parser.add_argument('-k', '--aws-key',
                     dest="aws_key",

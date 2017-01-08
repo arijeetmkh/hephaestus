@@ -5,13 +5,10 @@ import time
 from .conf import settings, get_boto_session
 
 
-messageQueue = queue.Queue(maxsize=settings.MESSAGE_QUEUE_MAX_SIZE)
-
-
 class SQSWorker(threading.Thread):
     def __init__(self, **kwargs):
+        self.messageQueue = kwargs.pop('messageQueue')
         threading.Thread.__init__(self, **kwargs)
-        self.messageQueue = messageQueue
 
     @staticmethod
     def initialize_queue(queue):
@@ -36,9 +33,9 @@ class SQSWorker(threading.Thread):
 
 class MessageWorker(threading.Thread):
     def __init__(self, **kwargs):
+        self.messageQueue = kwargs.pop('messageQueue')
         self.transport = kwargs.pop('transport')
         threading.Thread.__init__(self, **kwargs)
-        self.messageQueue = messageQueue
 
     def run(self):
         while True:
@@ -48,11 +45,17 @@ class MessageWorker(threading.Thread):
 
 
 def start_workers(transport=None):
+    messageQueue = queue.Queue(maxsize=settings.MESSAGE_QUEUE_MAX_SIZE)
+
     for i in range(settings.QUEUE_WORKERS):
-        SQSWorker(name="SQSWorker-{worker_number}".format(worker_number=str(i))).start()
+        SQSWorker(
+            messageQueue=messageQueue,
+            name="SQSWorker-{worker_number}".format(worker_number=str(i))
+        ).start()
 
     for i in range(settings.MESSAGE_PROCESSOR_WORKERS):
         MessageWorker(
+            messageQueue=messageQueue,
             transport=transport,
             name="MessageWorker-{worker_number}".format(worker_number=str(i))
         ).start()
