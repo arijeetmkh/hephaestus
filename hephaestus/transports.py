@@ -24,15 +24,22 @@ class Transport(object):
 class DjangoTransport(Transport):
     _type = "django"
 
-    def load(self):
+    @classmethod
+    def setup_django(cls, settings_module='', project_path=''):
         try:
             import django
         except ImportError:
             raise TransportRequirementError('Unable to import Django')
 
-        os.environ['DJANGO_SETTINGS_MODULE'] = self.conf['settings_module']
-        sys.path.append(self.conf['project_path'])
-        django.setup()
+        os.environ['DJANGO_SETTINGS_MODULE'] = settings_module
+        sys.path.append(project_path)
+        try:
+            django.setup()
+        except django.core.exceptions.ImproperlyConfigured:
+            raise TransportLoadError('Django setup failed')
+
+    def load(self):
+        self.setup_django(settings_module=self.conf['settings_module'], project_path=self.conf['project_path'])
         module = importlib.import_module(self.conf['class_import_path'])
         klass = getattr(module, self.conf['class_name'], None)
         if not klass:
@@ -43,3 +50,10 @@ class DjangoTransport(Transport):
     def send(self, message):
         klass = self.klass()
         klass.process_message(message)
+
+
+class CustomTransport(Transport):
+    """
+    A transport which behaves as an adaptor to the actual transport loaded at runtime
+    """
+    _type = "custom"

@@ -20,7 +20,7 @@ parser.add_argument('-c', '--config',
 
 args = parser.parse_args()
 
-from hephaestus.conf import settings, transport_setup
+from hephaestus.conf import settings, load_transport
 from hephaestus import worker
 
 
@@ -39,7 +39,7 @@ def set_config(config):
 def set_message_processors(config):
     location = config['GENERAL']
     message_transport_conf = json.load(open(location.get('message_transport_conf')))
-    Transport = transport_setup[message_transport_conf['type']]
+    Transport = load_transport(message_transport_conf['type'])
     transport = Transport(conf=message_transport_conf)
     transport.load()
     return transport

@@ -1,6 +1,7 @@
 import boto3
 
-from .transports import DjangoTransport
+from .transports import DjangoTransport, CustomTransport
+from .exceptions import *
 
 
 class Settings(object):
@@ -8,9 +9,17 @@ class Settings(object):
 
 settings = Settings()
 
-transport_setup = {
+transports = {
     "django": DjangoTransport,
+    "custom": CustomTransport
 }
+
+
+def load_transport(transport_type):
+    try:
+        return transports[transport_type]
+    except KeyError:
+        raise TransportNotFound("Transport '%s' not found" % str(transport_type))
 
 
 def get_boto_session():
