@@ -1,5 +1,6 @@
 import threading
 import queue
+import time
 
 from .conf import settings, get_boto_session
 
@@ -12,11 +13,25 @@ class SQSWorker(threading.Thread):
         threading.Thread.__init__(self, **kwargs)
         self.messageQueue = messageQueue
 
+    @staticmethod
+    def initialize_queue(queue):
+        kwargs = {
+            'MaxNumberOfMessages': settings.SQS_MAX_NUMBER_MESSAGES
+        }
+        if settings.SQS_VISIBILITY_TIMEOUT:
+            kwargs['VisibilityTimeout'] = settings.SQS_VISIBILITY_TIMEOUT
+        if settings.SQS_WAIT_TIME_SECONDS:
+            kwargs['WaitTimeSeconds'] = settings.SQS_WAIT_TIME_SECONDS
+        return queue(**kwargs)
+
     def run(self):
         sqs = get_boto_session().resource('sqs')
-        queue = sqs.get_queue_by_name(QueueName=settings.AWS_QUEUE_NAME)
+        queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
         print(queue)
-        self.messageQueue.put("MEH %s" % str(self.name))
+        while True:
+            for message in self.initialize_queue(queue):
+                self.messageQueue.put(message)
+            time.sleep(1)
 
 
 class MessageWorker(threading.Thread):

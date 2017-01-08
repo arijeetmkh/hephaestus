@@ -10,13 +10,54 @@ PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)) + '/')
 
-parser = argparse.ArgumentParser(description="Start Queue Consumer")
+import hephaestus
 
+
+parser = argparse.ArgumentParser(description="Start Queue Consumer", prog=hephaestus.__title__)
+
+parser.add_argument('--version', action='version', version='%(prog)s v' + hephaestus.__version__)
 parser.add_argument('-c', '--config',
                     dest="config",
                     action='store',
                     default='/etc/hephaestus/config.conf',
                     help='Absolute path to configuration file')
+parser.add_argument('-k', '--aws-key',
+                    dest="aws_key",
+                    action='store',
+                    help='AWS Key')
+parser.add_argument('-s', '--aws-secret',
+                    dest="aws_secret",
+                    action='store',
+                    help='AWS Secret')
+parser.add_argument('-r', '--aws-region',
+                    dest="aws_region",
+                    action='store',
+                    help='AWS Region')
+parser.add_argument('-q', '--sqs-queue-name',
+                    dest="queue_name",
+                    action='store',
+                    help='SQS Queue Name')
+parser.add_argument('-v', '--visibility-timeout',
+                    dest="visibility_timeout",
+                    action='store',
+                    help='SQS Visibility Timeout')
+parser.add_argument('-m', '--max-number-of-messages',
+                    dest="max_number_of_messages",
+                    action='store',
+                    help='Max Number of Mesages to get per request to SQS')
+parser.add_argument('-t', '--wait-time-seconds',
+                    dest="wait_time_seconds",
+                    action='store',
+                    help='Enables long polling to SQS. Value specifies how long to wait for new messages')
+parser.add_argument('-w', '--queue-workers',
+                    dest="queue_workers",
+                    action='store',
+                    help='Number of SQS message fetching threads to spawn')
+parser.add_argument('-mw', '--message-processor-workers',
+                    dest="message_processor_workers",
+                    action='store',
+                    help='Number of message processor threads to spawn')
+
 
 args = parser.parse_args()
 
@@ -25,15 +66,25 @@ from hephaestus import worker
 
 
 def set_config(config):
-    aws_credentials = config['AWS_CREDENTIALS']
-    setattr(settings, 'AWS_KEY', aws_credentials.get('aws_key'))
-    setattr(settings, 'AWS_SECRET', aws_credentials.get('aws_secret'))
-    setattr(settings, 'AWS_QUEUE_NAME', aws_credentials.get('queue_name'))
-    setattr(settings, 'AWS_REGION', aws_credentials.get('region_name'))
 
-    worker_settings = config['WORKER_SETTINGS']
-    setattr(settings, 'QUEUE_WORKERS', worker_settings.getint('queue_workers'))
-    setattr(settings, 'MESSAGE_PROCESSOR_WORKERS', worker_settings.getint('message_processor_workers'))
+    def get_config(key, config_section_key):
+        arg = getattr(args, key, None)
+        if arg:
+            return arg
+        config_section = config[config_section_key]
+        return config_section.get(key)
+
+    setattr(settings, 'AWS_KEY', get_config('aws_key', 'AWS_CREDENTIALS'))
+    setattr(settings, 'AWS_SECRET', get_config('aws_secret', 'AWS_CREDENTIALS'))
+    setattr(settings, 'AWS_REGION', get_config('aws_region', 'AWS_CREDENTIALS'))
+
+    setattr(settings, 'SQS_QUEUE_NAME', get_config('queue_name', 'SQS_SETTINGS'))
+    setattr(settings, 'SQS_VISIBILITY_TIMEOUT', get_config('visibility_timeout', 'SQS_SETTINGS'))
+    setattr(settings, 'SQS_MAX_NUMBER_MESSAGES', get_config('max_number_of_messages', 'SQS_SETTINGS'))
+    setattr(settings, 'SQS_WAIT_TIME_SECONDS', get_config('wait_time_seconds', 'SQS_SETTINGS'))
+
+    setattr(settings, 'QUEUE_WORKERS', get_config('queue_workers', 'WORKER_SETTINGS'))
+    setattr(settings, 'MESSAGE_PROCESSOR_WORKERS', get_config('message_processor_workers', 'WORKER_SETTINGS'))
 
 
 def set_message_processors(config):
@@ -43,6 +94,7 @@ def set_message_processors(config):
     transport = Transport(conf=message_transport_conf)
     transport.load()
     return transport
+
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()
