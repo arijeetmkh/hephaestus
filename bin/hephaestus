@@ -57,6 +57,10 @@ parser.add_argument('-mw', '--message-processor-workers',
                     dest="message_processor_workers",
                     action='store',
                     help='Number of message processor threads to spawn')
+parser.add_argument('-qs', '--message-queue-max-size',
+                    dest="message_queue_max_size",
+                    action='store',
+                    help='Max size of message queue from which message processor threads pick up messages')
 
 
 args = parser.parse_args()
@@ -67,24 +71,32 @@ from hephaestus import worker
 
 def set_config(config):
 
-    def get_config(key, config_section_key):
+    def get_config(key, config_section_key, config_get_type=None):
         arg = getattr(args, key, None)
         if arg:
-            return arg
+            if config_get_type:
+                return config_get_type(arg)
+            else:
+                return arg
         config_section = config[config_section_key]
-        return config_section.get(key)
+
+        if not config_get_type:
+            return config_section.get(key)
+        elif config_get_type == int:
+            return config_section.getint(key)
 
     setattr(settings, 'AWS_KEY', get_config('aws_key', 'AWS_CREDENTIALS'))
     setattr(settings, 'AWS_SECRET', get_config('aws_secret', 'AWS_CREDENTIALS'))
     setattr(settings, 'AWS_REGION', get_config('aws_region', 'AWS_CREDENTIALS'))
 
     setattr(settings, 'SQS_QUEUE_NAME', get_config('queue_name', 'SQS_SETTINGS'))
-    setattr(settings, 'SQS_VISIBILITY_TIMEOUT', get_config('visibility_timeout', 'SQS_SETTINGS'))
-    setattr(settings, 'SQS_MAX_NUMBER_MESSAGES', get_config('max_number_of_messages', 'SQS_SETTINGS'))
-    setattr(settings, 'SQS_WAIT_TIME_SECONDS', get_config('wait_time_seconds', 'SQS_SETTINGS'))
+    setattr(settings, 'SQS_VISIBILITY_TIMEOUT', get_config('visibility_timeout', 'SQS_SETTINGS', int))
+    setattr(settings, 'SQS_MAX_NUMBER_MESSAGES', get_config('max_number_of_messages', 'SQS_SETTINGS', int))
+    setattr(settings, 'SQS_WAIT_TIME_SECONDS', get_config('wait_time_seconds', 'SQS_SETTINGS', int))
 
-    setattr(settings, 'QUEUE_WORKERS', get_config('queue_workers', 'WORKER_SETTINGS'))
-    setattr(settings, 'MESSAGE_PROCESSOR_WORKERS', get_config('message_processor_workers', 'WORKER_SETTINGS'))
+    setattr(settings, 'QUEUE_WORKERS', get_config('queue_workers', 'WORKER_SETTINGS', int))
+    setattr(settings, 'MESSAGE_PROCESSOR_WORKERS', get_config('message_processor_workers', 'WORKER_SETTINGS', int))
+    setattr(settings, 'MESSAGE_QUEUE_MAX_SIZE', get_config('message_queue_max_size', 'WORKER_SETTINGS', int))
 
 
 def set_message_processors(config):
