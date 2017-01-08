@@ -5,7 +5,7 @@ import time
 from .conf import settings, get_boto_session
 
 
-messageQueue = queue.Queue(maxsize=10)
+messageQueue = queue.Queue(maxsize=settings.MESSAGE_QUEUE_MAX_SIZE)
 
 
 class SQSWorker(threading.Thread):

@@ -13,7 +13,7 @@ sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)) + '/'
 import hephaestus
 
 
-parser = argparse.ArgumentParser(description="Start Queue Consumer", prog=hephaestus.__title__)
+parser = argparse.ArgumentParser(description="Queue Consumer", prog=hephaestus.__title__)
 
 parser.add_argument('--version', action='version', version='%(prog)s v' + hephaestus.__version__)
 parser.add_argument('-c', '--config',
