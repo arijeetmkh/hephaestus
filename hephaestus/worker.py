@@ -1,3 +1,4 @@
+import logging
 import threading
 import queue
 import time
@@ -5,10 +6,14 @@ import time
 from .conf import settings, get_boto_session
 
 
+workerLogger = logging.getLogger('hephaestus.worker')
+
+
 class SQSWorker(threading.Thread):
     def __init__(self, **kwargs):
         self.messageQueue = kwargs.pop('messageQueue')
         threading.Thread.__init__(self, **kwargs)
+        workerLogger.info('Queue worker started - %s' % str(self.name))
 
     @staticmethod
     def initialize_queue(queue):
@@ -36,23 +41,26 @@ class MessageWorker(threading.Thread):
         self.messageQueue = kwargs.pop('messageQueue')
         self.transport = kwargs.pop('transport')
         threading.Thread.__init__(self, **kwargs)
+        workerLogger.info('Message worker started - %s' % str(self.name))
 
     def run(self):
         while True:
-            print("Mesage worker")
             message = self.messageQueue.get()
             self.transport.send(message)
 
 
 def start_workers(transport=None):
+    workerLogger.debug('Initializing internal message queue with size - %d' % settings.MESSAGE_QUEUE_MAX_SIZE)
     messageQueue = queue.Queue(maxsize=settings.MESSAGE_QUEUE_MAX_SIZE)
 
+    workerLogger.info('Spawning %d queue workers' % settings.QUEUE_WORKERS)
     for i in range(settings.QUEUE_WORKERS):
         SQSWorker(
             messageQueue=messageQueue,
             name="SQSWorker-{worker_number}".format(worker_number=str(i))
         ).start()
 
+    workerLogger.info('Spawning %d message processor workers' % settings.MESSAGE_PROCESSOR_WORKERS)
     for i in range(settings.MESSAGE_PROCESSOR_WORKERS):
         MessageWorker(
             messageQueue=messageQueue,

@@ -4,34 +4,29 @@ import sys
 import json
 import argparse
 import configparser
+import logging
+import hephaestus
 from pkg_resources import resource_filename
 
-
-PACKAGE_PARENT = '..'
-SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
-sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)) + '/')
-
-config_file = None
-for loc in os.curdir, os.path.expanduser("~"), "/etc/hephaestus":
-    path = os.path.join(loc, "hephaestus.conf")
-    try:
-        with open(path) as fp:
-            config_file = path
-            break
-    except FileNotFoundError:
-        pass
-
-
-import hephaestus
-
+# startupLogger.info('Setting up sys.path')
+# PACKAGE_PARENT = '..'
+# SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+# PATH_APPEND = os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)) + '/'
+# startupLogger.info("Adding to sys.path '%s'" % PATH_APPEND)
+# sys.path.append(PATH_APPEND)
 
 parser = argparse.ArgumentParser(description="Queue Consumer", prog=hephaestus.__title__)
 
 parser.add_argument('--version', action='version', version='%(prog)s v' + hephaestus.__version__)
+parser.add_argument('-l', '--log-level',
+                    dest="log_level",
+                    action='store',
+                    default='INFO',
+                    help='Log Level to operate the program in')
 parser.add_argument('-c', '--config',
                     dest="config",
                     action='store',
-                    default=config_file or resource_filename("hephaestus", "hephaestus.conf"),
+                    default='',
                     help='Absolute path to configuration file')
 parser.add_argument('-k', '--aws-key',
                     dest="aws_key",
@@ -81,6 +76,10 @@ parser.add_argument('-mtc', '--message-transport-conf',
 
 args = parser.parse_args()
 
+logging.basicConfig(stream=sys.stdout, level=logging.getLevelName(args.log_level))
+startupLogger = logging.getLogger('hephaestus.startup')
+startupLogger.info('Starting up Hephaestus')
+
 from hephaestus.conf import settings, load_transport
 from hephaestus.exceptions import TransportFileNotFound
 from hephaestus import worker
@@ -120,13 +119,17 @@ def set_config(config):
         transport_conf = resource_filename("hephaestus", "message_transport_conf.json")
     setattr(settings, 'MESSAGE_TRANSPORT_CONF', transport_conf)
 
+    startupLogger.debug('Config set as-' + str(settings.__dict__))
+
 
 def set_transports():
+    startupLogger.info('Transport config file - %s' % str(settings.MESSAGE_TRANSPORT_CONF))
     try:
         message_transport_conf = json.load(open(settings.MESSAGE_TRANSPORT_CONF))
     except FileNotFoundError:
         raise TransportFileNotFound("Transport Configuration File Not Found at '%s'" % str(settings.MESSAGE_TRANSPORT_CONF))
 
+    startupLogger.debug('Loading transport type - %s' % message_transport_conf['type'])
     Transport = load_transport(message_transport_conf['type'])
     transport = Transport(conf=message_transport_conf)
     transport.load()
@@ -135,7 +138,12 @@ def set_transports():
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()
-    config.read(args.config)
+    startupLogger.debug("Reading configuration file")
+    config.read([args.config, os.path.join(os.curdir, "hephaestus.conf"), os.path.join(os.path.expanduser('~'), "hephaestus.conf"), os.path.join("/etc/hephaestus", "hephaestus.conf"), resource_filename("hephaestus", "hephaestus.conf")])
+    startupLogger.debug('Config file sections found %d. Sections - %s' % (len(config.sections()), config.sections()))
+    startupLogger.info('Setting config')
     set_config(config)
+    startupLogger.info('Setting transports')
     transport = set_transports()
+    startupLogger.info('Starting workers')
     worker.start_workers(transport=transport)
