@@ -2,6 +2,10 @@ class TransportError(Exception):
     pass
 
 
+class TransportFileNotFound(FileNotFoundError):
+    pass
+
+
 class TransportNotFound(TransportError):
     pass
 
