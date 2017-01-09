@@ -121,8 +121,7 @@ def set_config(config):
     setattr(settings, 'MESSAGE_TRANSPORT_CONF', transport_conf)
 
 
-def set_transports(config):
-    print(settings.MESSAGE_TRANSPORT_CONF)
+def set_transports():
     try:
         message_transport_conf = json.load(open(settings.MESSAGE_TRANSPORT_CONF))
     except FileNotFoundError:
@@ -138,5 +137,5 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read(args.config)
     set_config(config)
-    transport = set_transports(config)
+    transport = set_transports()
     worker.start_workers(transport=transport)
