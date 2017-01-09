@@ -1,2 +1,0 @@
-include hephaestus.conf
-include message_transport_conf.json

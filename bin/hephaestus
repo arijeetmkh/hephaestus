@@ -4,7 +4,7 @@ import sys
 import json
 import argparse
 import configparser
-from pkg_resources import Requirement, resource_filename
+from pkg_resources import resource_filename
 
 
 PACKAGE_PARENT = '..'
@@ -31,7 +31,7 @@ parser.add_argument('--version', action='version', version='%(prog)s v' + hephae
 parser.add_argument('-c', '--config',
                     dest="config",
                     action='store',
-                    default=config_file or resource_filename(Requirement.parse("hephaestus"), "hephaestus.conf"),
+                    default=config_file or resource_filename("hephaestus", "hephaestus.conf"),
                     help='Absolute path to configuration file')
 parser.add_argument('-k', '--aws-key',
                     dest="aws_key",
@@ -117,7 +117,7 @@ def set_config(config):
 
     transport_conf = get_config('message_transport_conf', 'GENERAL')
     if not transport_conf:
-        transport_conf = resource_filename(Requirement.parse("hephaestus"), "message_transport_conf.json")
+        transport_conf = resource_filename("hephaestus", "message_transport_conf.json")
     setattr(settings, 'MESSAGE_TRANSPORT_CONF', transport_conf)
 
 
