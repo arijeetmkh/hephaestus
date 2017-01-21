@@ -21,7 +21,7 @@ transports = {
 def load_transport(transport_type):
     try:
         t_type = transports[transport_type]
-        confLogger.debug("Loaded transport %s" % str(t_type))
+        confLogger.info("Loaded transport %s" % str(t_type))
         return t_type
     except KeyError:
         confLogger.critical("Transport '%s' not found" % str(transport_type))

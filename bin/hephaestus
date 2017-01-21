@@ -129,7 +129,7 @@ def set_transports():
     except FileNotFoundError:
         raise TransportFileNotFound("Transport Configuration File Not Found at '%s'" % str(settings.MESSAGE_TRANSPORT_CONF))
 
-    startupLogger.debug('Loading transport type - %s' % message_transport_conf['type'])
+    startupLogger.info('Loading transport type - %s' % message_transport_conf['type'])
     Transport = load_transport(message_transport_conf['type'])
     transport = Transport(conf=message_transport_conf)
     transport.load()
@@ -138,7 +138,7 @@ def set_transports():
 
 if __name__ == '__main__':
     config = configparser.ConfigParser()
-    startupLogger.debug("Reading configuration file")
+    startupLogger.info("Reading configuration file")
     config.read([args.config, os.path.join(os.curdir, "hephaestus.conf"), os.path.join(os.path.expanduser('~'), "hephaestus.conf"), os.path.join("/etc/hephaestus", "hephaestus.conf"), resource_filename("hephaestus", "hephaestus.conf")])
     startupLogger.debug('Config file sections found %d. Sections - %s' % (len(config.sections()), config.sections()))
     startupLogger.info('Setting config')
