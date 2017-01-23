@@ -137,6 +137,7 @@ def set_transports():
     startupLogger.info('Loading transport type - %s' % message_transport_conf['type'])
     Transport = load_transport(message_transport_conf['type'])
     transport = Transport(conf=message_transport_conf)
+    transport.setup()
     transport.load()
     return transport
 

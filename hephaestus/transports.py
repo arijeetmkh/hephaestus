@@ -3,6 +3,9 @@ from .exceptions import *
 import os
 import sys
 import importlib
+import logging
+
+transportLogger = logging.getLogger('hephaestus.transport')
 
 
 class Transport(object):
@@ -13,6 +16,17 @@ class Transport(object):
     def __init__(self, conf):
         self.conf = conf
         self.klass = None
+
+    def setup(self):
+        envs = self.conf.get('env', ())
+        if not envs:
+            return
+        assert isinstance(envs, dict), "Environments must be an object holding keys and values"
+
+        transportLogger.info("Settings up environment variables")
+        for env, value in envs.items():
+            transportLogger.debug('ENV: %s VALUE %s' % (str(env), str(value)))
+            os.environ[env] = value
 
     def load(self):
         raise NotImplementedError
