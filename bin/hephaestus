@@ -56,6 +56,10 @@ parser.add_argument('-t', '--wait-time-seconds',
                     dest="wait_time_seconds",
                     action='store',
                     help='Enables long polling to SQS. Value specifies how long to wait for new messages')
+parser.add_argument('-wb', '--wait-between-requests',
+                    dest="wait_between_requests",
+                    action='store',
+                    help='Wait n seconds after connection to SQS returns, before initiating a new connection')
 parser.add_argument('-w', '--queue-workers',
                     dest="queue_workers",
                     action='store',
@@ -109,6 +113,7 @@ def set_config(config):
     setattr(settings, 'SQS_VISIBILITY_TIMEOUT', get_config('visibility_timeout', 'SQS_SETTINGS', int))
     setattr(settings, 'SQS_MAX_NUMBER_MESSAGES', get_config('max_number_of_messages', 'SQS_SETTINGS', int))
     setattr(settings, 'SQS_WAIT_TIME_SECONDS', get_config('wait_time_seconds', 'SQS_SETTINGS', int))
+    setattr(settings, 'SQS_WAIT_BETWEEN_REQUESTS', get_config('wait_between_requests', 'SQS_SETTINGS', int))
 
     setattr(settings, 'QUEUE_WORKERS', get_config('queue_workers', 'WORKER_SETTINGS', int))
     setattr(settings, 'MESSAGE_PROCESSOR_WORKERS', get_config('message_processor_workers', 'WORKER_SETTINGS', int))
