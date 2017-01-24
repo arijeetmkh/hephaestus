@@ -31,10 +31,9 @@ class SQSWorker(threading.Thread):
     def run(self):
         sqs = get_boto_session().resource('sqs')
         queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
-        print(queue)
+        workerLogger.info("SQS Queue- %s" % str(queue))
         receive_params = self.init_receive_params()
         while True:
-            self.messageQueue.put('gagaga')
             for message in queue.receive_messages(**receive_params):
                 self.messageQueue.put(message)
             time.sleep(settings.SQS_WAIT_BETWEEN_REQUESTS)

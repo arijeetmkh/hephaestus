@@ -1,9 +1,9 @@
-from .exceptions import *
-
 import os
 import sys
 import importlib
 import logging
+from .exceptions import *
+
 
 transportLogger = logging.getLogger('hephaestus.transport')
 
@@ -25,7 +25,7 @@ class Transport(object):
 
         transportLogger.info("Settings up environment variables")
         for env, value in envs.items():
-            transportLogger.debug('ENV: %s VALUE %s' % (str(env), str(value)))
+            transportLogger.debug('ENV: %s : %s' % (str(env), str(value)))
             os.environ[env] = value
 
     def load(self):
@@ -33,6 +33,18 @@ class Transport(object):
 
     def send(self, message):
         print(message)
+
+
+class LoggerTransport(Transport):
+
+    _type = "log"
+    _logger = None
+
+    def load(self):
+        self._logger = logging.getLogger(self.conf['logger'])
+
+    def send(self, message):
+        self._logger.info(message)
 
 
 class DjangoTransport(Transport):

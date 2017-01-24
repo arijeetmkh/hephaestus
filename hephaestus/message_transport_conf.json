@@ -1,10 +1,6 @@
 {
-  "type": "django",
-  "settings_module": "zopper_payments.settings.__init__",
-  "project_path": "/Users/arijeet/work/payments_project/zopper_payments/",
-  "class_import_path": "transactions.models",
-  "class_name": "MyClass",
+  "type": "log",
+  "logger": "hephaestus.message",
   "env": {
-    "abcd": "efgh"
   }
 }

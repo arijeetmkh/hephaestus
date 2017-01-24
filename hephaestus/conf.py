@@ -1,7 +1,7 @@
 import logging
 import boto3
 
-from .transports import DjangoTransport, CustomTransport
+from .transports import DjangoTransport, CustomTransport, LoggerTransport
 from .exceptions import *
 
 confLogger = logging.getLogger('hephaestus.conf')
@@ -14,6 +14,7 @@ settings = Settings()
 
 transports = {
     "django": DjangoTransport,
+    "log": LoggerTransport,
     "custom": CustomTransport
 }
 
