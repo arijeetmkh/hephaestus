@@ -80,7 +80,8 @@ parser.add_argument('-mtc', '--message-transport-conf',
 
 args = parser.parse_args()
 
-logging.basicConfig(stream=sys.stdout, level=logging.getLevelName(args.log_level))
+logging.basicConfig(stream=sys.stdout, level=logging.getLevelName(args.log_level), format='[%(levelname)s %(asctime)s] %(name)s: %(message)s')
+
 startupLogger = logging.getLogger('hephaestus.startup')
 startupLogger.info('Starting up Hephaestus')
 
