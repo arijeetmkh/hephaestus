@@ -66,7 +66,7 @@ class DjangoTransport(Transport):
         try:
             klass.process_message(message)
         except Exception as exc:
-            transportLogger.warning("Transport received a message receiver exception")
+            transportLogger.exception("Transport received a message receiver exception")
             raise ReceiverError(str(exc))
 
 

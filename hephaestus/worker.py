@@ -53,7 +53,7 @@ class MessageWorker(threading.Thread):
             try:
                 self.transport.send(message)
             except ReceiverError:
-                messageReceiverLogger.exception("Message receiver errored out with an exception")
+                messageReceiverLogger.warning("Detected error in transport")
 
 
 def start_workers(transport=None):
