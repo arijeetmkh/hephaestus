@@ -34,8 +34,12 @@ class SQSWorker(threading.Thread):
         workerLogger.info("SQS Queue- %s" % str(queue))
         receive_params = self.init_receive_params()
         while True:
+            workerLogger.debug("Connecting to SQS to receive messages with params %s" % str(receive_params))
             for message in queue.receive_messages(**receive_params):
+                workerLogger.info(message.body)
                 self.messageQueue.put(message)
+                message.delete()
+            workerLogger.debug("Waiting between SQS requests for %d seconds" % settings.SQS_WAIT_BETWEEN_REQUESTS)
             time.sleep(settings.SQS_WAIT_BETWEEN_REQUESTS)
 
 

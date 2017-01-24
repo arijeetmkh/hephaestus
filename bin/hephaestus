@@ -84,7 +84,7 @@ config.dictConfig({
     'version': 1,
     'formatters': {
         'basicFormatter': {
-            'format': '[%(levelname)s %(asctime)s] %(name)s: %(message)s'
+            'format': '[%(asctime)s %(levelname)s %(threadName)s] %(name)s: %(message)s'
         }
     },
     'handlers': {

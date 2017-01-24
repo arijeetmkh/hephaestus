@@ -20,3 +20,7 @@ class TransportRequirementError(TransportError):
 
 class ReceiverError(Exception):
     pass
+
+
+class ConfigError(Exception):
+    pass

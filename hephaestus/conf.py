@@ -31,6 +31,8 @@ def load_transport(transport_type):
 
 def get_boto_session():
     confLogger.debug('Retrieving Boto session with values - aws_access_key_id=%s, aws_secret_access_key=%s, region_name=%s' % (settings.AWS_KEY, settings.AWS_SECRET, settings.AWS_REGION))
+    if not settings.AWS_REGION:
+        raise ConfigError('AWS_REGION not defined')
     return boto3.session.Session(
         aws_access_key_id=settings.AWS_KEY,
         aws_secret_access_key=settings.AWS_SECRET,
