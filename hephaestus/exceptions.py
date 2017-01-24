@@ -16,3 +16,7 @@ class TransportLoadError(TransportError):
 
 class TransportRequirementError(TransportError):
     pass
+
+
+class ReceiverError(Exception):
+    pass

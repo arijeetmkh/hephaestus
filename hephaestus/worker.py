@@ -4,9 +4,11 @@ import queue
 import time
 
 from .conf import settings, get_boto_session
+from .exceptions import *
 
 
 workerLogger = logging.getLogger('hephaestus.worker')
+messageReceiverLogger = logging.getLogger('hephaestus.message_receiver')
 
 
 class SQSWorker(threading.Thread):
@@ -35,7 +37,7 @@ class SQSWorker(threading.Thread):
             self.messageQueue.put('gagaga')
             for message in queue.receive_messages(**receive_params):
                 self.messageQueue.put(message)
-            time.sleep(1)
+            time.sleep(settings.SQS_WAIT_BETWEEN_REQUESTS)
 
 
 class MessageWorker(threading.Thread):
@@ -48,7 +50,10 @@ class MessageWorker(threading.Thread):
     def run(self):
         while True:
             message = self.messageQueue.get()
-            self.transport.send(message)
+            try:
+                self.transport.send(message)
+            except ReceiverError:
+                messageReceiverLogger.exception("Message receiver errored out with an exception")
 
 
 def start_workers(transport=None):

@@ -63,7 +63,11 @@ class DjangoTransport(Transport):
 
     def send(self, message):
         klass = self.klass()
-        klass.process_message(message)
+        try:
+            klass.process_message(message)
+        except Exception as exc:
+            transportLogger.warning("Transport received a message receiver exception")
+            raise ReceiverError(str(exc))
 
 
 class CustomTransport(Transport):
