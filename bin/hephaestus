@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import os
-import sys
 import json
 import argparse
 import configparser
 import logging
 import hephaestus
 from pkg_resources import resource_filename
+from logging import config
 
 # startupLogger.info('Setting up sys.path')
 # PACKAGE_PARENT = '..'
@@ -80,8 +80,27 @@ parser.add_argument('-mtc', '--message-transport-conf',
 
 args = parser.parse_args()
 
-logging.basicConfig(stream=sys.stdout, level=logging.getLevelName(args.log_level), format='[%(levelname)s %(asctime)s] %(name)s: %(message)s')
-
+config.dictConfig({
+    'version': 1,
+    'formatters': {
+        'basicFormatter': {
+            'format': '[%(levelname)s %(asctime)s] %(name)s: %(message)s'
+        }
+    },
+    'handlers': {
+       'console': {
+           'class': 'logging.StreamHandler',
+           'formatter': 'basicFormatter'
+       }
+    },
+    'loggers': {
+        'hephaestus': {
+            'level': logging.getLevelName(args.log_level),
+            'propagate': False,
+            'handlers': ['console']
+        }
+    }
+})
 startupLogger = logging.getLogger('hephaestus.startup')
 startupLogger.info('Starting up Hephaestus')
 
