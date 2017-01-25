@@ -32,7 +32,7 @@ class Transport(object):
         raise NotImplementedError
 
     def send(self, message):
-        print(message)
+        raise NotImplementedError
 
 
 class LoggerTransport(Transport):
@@ -44,7 +44,7 @@ class LoggerTransport(Transport):
         self._logger = logging.getLogger(self.conf['logger'])
 
     def send(self, message):
-        self._logger.info(message)
+        self._logger.info(message.body)
 
 
 class DjangoTransport(Transport):
