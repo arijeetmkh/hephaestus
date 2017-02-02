@@ -3,7 +3,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import abc
 
 
-class MessageReceiver(metaclass=abc.ABCMeta):
+class MessageReceiver(object):
+
+    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def process_message(self, message):
