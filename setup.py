@@ -10,7 +10,7 @@ setup(
     author_email='arijeet.mkh@gmail.com',
     url="https://github.com/arijeetmkh/hephaestus",
     packages=['hephaestus'],
-    install_requires=['boto3'],
+    install_requires=['boto3', 'configparser'],
     scripts=['bin/hephaestus'],
     package_data={
         'hephaestus': ['hephaestus.conf', 'message_transport_conf.json']

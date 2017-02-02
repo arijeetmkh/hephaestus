@@ -1,11 +1,15 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import logging
 import threading
-import queue
 import time
 
 from .conf import settings, get_boto_session
 from .exceptions import *
+
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 
 
 workerLogger = logging.getLogger('hephaestus.worker')

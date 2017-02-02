@@ -5,7 +5,7 @@ class TransportError(Exception):
     pass
 
 
-class TransportFileNotFound(FileNotFoundError):
+class TransportFileNotFound(OSError):
     pass
 
 
