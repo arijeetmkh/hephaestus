@@ -84,7 +84,7 @@ parser.add_argument('-mtc', '--message-transport-conf',
 
 args = parser.parse_args()
 
-from hephaestus.conf import set_transports, set_config, get_log_config
+from hephaestus.conf import set_transports, set_config, get_log_config, verify_settings
 
 config.dictConfig(get_log_config(args.log_level))
 startupLogger = logging.getLogger('hephaestus.startup')
@@ -110,5 +110,7 @@ if __name__ == '__main__':
     set_config(config, args)
     startupLogger.info('Setting transports')
     transport = set_transports()
+    startupLogger.info('verifying settings')
+    verify_settings("")
     startupLogger.info('Starting workers')
     worker.start_workers(transport=transport)

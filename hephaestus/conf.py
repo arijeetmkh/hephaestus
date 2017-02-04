@@ -12,7 +12,10 @@ startupLogger = logging.getLogger('hephaestus.startup')
 
 
 class Settings(object):
-    pass
+
+    def update_settings(self, settings):
+        for k, v in settings.items():
+            setattr(self, k, v)
 
 settings = Settings()
 
@@ -85,27 +88,26 @@ def set_config(config, args):
         elif config_get_type == int:
             return config_section.getint(key)
 
-    setattr(settings, 'AWS_KEY', get_config('aws_key', 'AWS_CREDENTIALS'))
-    setattr(settings, 'AWS_SECRET', get_config('aws_secret', 'AWS_CREDENTIALS'))
-    setattr(settings, 'AWS_REGION', get_config('aws_region', 'AWS_CREDENTIALS'))
-
-    setattr(settings, 'SQS_QUEUE_NAME', get_config('queue_name', 'SQS_SETTINGS'))
-    setattr(settings, 'SQS_VISIBILITY_TIMEOUT', get_config('visibility_timeout', 'SQS_SETTINGS', int))
-    setattr(settings, 'SQS_MAX_NUMBER_MESSAGES', get_config('max_number_of_messages', 'SQS_SETTINGS', int))
-    setattr(settings, 'SQS_WAIT_TIME_SECONDS', get_config('wait_time_seconds', 'SQS_SETTINGS', int))
-    setattr(settings, 'SQS_WAIT_BETWEEN_REQUESTS', get_config('wait_between_requests', 'SQS_SETTINGS', int))
-    setattr(settings, 'SQS_MESSAGE_DELETE_POLICY', get_config('message_delete_policy', 'SQS_SETTINGS'))
-
-    setattr(settings, 'QUEUE_WORKERS', get_config('queue_workers', 'WORKER_SETTINGS', int))
-    setattr(settings, 'MESSAGE_PROCESSOR_WORKERS', get_config('message_processor_workers', 'WORKER_SETTINGS', int))
-    setattr(settings, 'MESSAGE_QUEUE_MAX_SIZE', get_config('message_queue_max_size', 'WORKER_SETTINGS', int))
+    _settings = {'AWS_KEY': get_config('aws_key', 'AWS_CREDENTIALS'),
+                 'AWS_SECRET': get_config('aws_secret', 'AWS_CREDENTIALS'),
+                 'AWS_REGION': get_config('aws_region', 'AWS_CREDENTIALS'),
+                 'SQS_QUEUE_NAME': get_config('queue_name', 'SQS_SETTINGS'),
+                 'SQS_VISIBILITY_TIMEOUT': get_config('visibility_timeout', 'SQS_SETTINGS', int),
+                 'SQS_MAX_NUMBER_MESSAGES': get_config('max_number_of_messages', 'SQS_SETTINGS', int),
+                 'SQS_WAIT_TIME_SECONDS': get_config('wait_time_seconds', 'SQS_SETTINGS', int),
+                 'SQS_WAIT_BETWEEN_REQUESTS': get_config('wait_between_requests', 'SQS_SETTINGS', int),
+                 'SQS_MESSAGE_DELETE_POLICY': get_config('message_delete_policy', 'SQS_SETTINGS'),
+                 'QUEUE_WORKERS': get_config('queue_workers', 'WORKER_SETTINGS', int),
+                 'MESSAGE_PROCESSOR_WORKERS': get_config('message_processor_workers', 'WORKER_SETTINGS', int),
+                 'MESSAGE_QUEUE_MAX_SIZE': get_config('message_queue_max_size', 'WORKER_SETTINGS', int)}
 
     transport_conf = get_config('message_transport_conf', 'GENERAL')
     if not transport_conf:
         transport_conf = resource_filename("hephaestus", "message_transport_conf.json")
-    setattr(settings, 'MESSAGE_TRANSPORT_CONF', transport_conf)
+    _settings['MESSAGE_TRANSPORT_CONF'] = transport_conf
 
-    startupLogger.debug('Config set as-' + str(settings.__dict__))
+    settings.update_settings(_settings)
+    startupLogger.debug('Config set as - ' + str(settings.__dict__))
 
 
 def set_transports():
@@ -121,3 +123,7 @@ def set_transports():
     transport.setup()
     transport.load()
     return transport
+
+
+def verify_settings(settings):
+    pass
