@@ -1,11 +1,14 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 import logging
 import boto3
+import json
 
+from pkg_resources import resource_filename
 from .transports import DjangoTransport, CustomTransport, LoggerTransport
 from .exceptions import *
 
 confLogger = logging.getLogger('hephaestus.conf')
+startupLogger = logging.getLogger('hephaestus.startup')
 
 
 class Settings(object):
@@ -18,6 +21,31 @@ transports = {
     "log": LoggerTransport,
     "custom": CustomTransport
 }
+
+
+def get_log_config(level):
+    return {
+        'version': 1,
+        'formatters': {
+            'basicFormatter': {
+                'format': '[%(asctime)s %(levelname)s %(threadName)s] %(name)s: %(message)s'
+            }
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'basicFormatter',
+                'stream': 'ext://sys.stdout'
+            }
+        },
+        'loggers': {
+            'hephaestus': {
+                'level': logging.getLevelName(level),
+                'propagate': False,
+                'handlers': ['console']
+            }
+        }
+    }
 
 
 def load_transport(transport_type):
@@ -39,3 +67,57 @@ def get_boto_session():
         aws_secret_access_key=settings.AWS_SECRET,
         region_name=settings.AWS_REGION
     )
+
+
+def set_config(config, args):
+
+    def get_config(key, config_section_key, config_get_type=None):
+        arg = getattr(args, key, None)
+        if arg:
+            if config_get_type:
+                return config_get_type(arg)
+            else:
+                return arg
+        config_section = config[config_section_key]
+
+        if not config_get_type:
+            return config_section.get(key)
+        elif config_get_type == int:
+            return config_section.getint(key)
+
+    setattr(settings, 'AWS_KEY', get_config('aws_key', 'AWS_CREDENTIALS'))
+    setattr(settings, 'AWS_SECRET', get_config('aws_secret', 'AWS_CREDENTIALS'))
+    setattr(settings, 'AWS_REGION', get_config('aws_region', 'AWS_CREDENTIALS'))
+
+    setattr(settings, 'SQS_QUEUE_NAME', get_config('queue_name', 'SQS_SETTINGS'))
+    setattr(settings, 'SQS_VISIBILITY_TIMEOUT', get_config('visibility_timeout', 'SQS_SETTINGS', int))
+    setattr(settings, 'SQS_MAX_NUMBER_MESSAGES', get_config('max_number_of_messages', 'SQS_SETTINGS', int))
+    setattr(settings, 'SQS_WAIT_TIME_SECONDS', get_config('wait_time_seconds', 'SQS_SETTINGS', int))
+    setattr(settings, 'SQS_WAIT_BETWEEN_REQUESTS', get_config('wait_between_requests', 'SQS_SETTINGS', int))
+    setattr(settings, 'SQS_MESSAGE_DELETE_POLICY', get_config('message_delete_policy', 'SQS_SETTINGS'))
+
+    setattr(settings, 'QUEUE_WORKERS', get_config('queue_workers', 'WORKER_SETTINGS', int))
+    setattr(settings, 'MESSAGE_PROCESSOR_WORKERS', get_config('message_processor_workers', 'WORKER_SETTINGS', int))
+    setattr(settings, 'MESSAGE_QUEUE_MAX_SIZE', get_config('message_queue_max_size', 'WORKER_SETTINGS', int))
+
+    transport_conf = get_config('message_transport_conf', 'GENERAL')
+    if not transport_conf:
+        transport_conf = resource_filename("hephaestus", "message_transport_conf.json")
+    setattr(settings, 'MESSAGE_TRANSPORT_CONF', transport_conf)
+
+    startupLogger.debug('Config set as-' + str(settings.__dict__))
+
+
+def set_transports():
+    startupLogger.info('Transport config file - %s' % str(settings.MESSAGE_TRANSPORT_CONF))
+    try:
+        message_transport_conf = json.load(open(settings.MESSAGE_TRANSPORT_CONF))
+    except FileNotFoundError:
+        raise TransportFileNotFound("Transport Configuration File Not Found at '%s'" % str(settings.MESSAGE_TRANSPORT_CONF))
+
+    startupLogger.info('Loading transport type - %s' % message_transport_conf['type'])
+    Transport = load_transport(message_transport_conf['type'])
+    transport = Transport(conf=message_transport_conf)
+    transport.setup()
+    transport.load()
+    return transport
