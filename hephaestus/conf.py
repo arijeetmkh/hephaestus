@@ -126,4 +126,5 @@ def set_transports():
 
 
 def verify_settings(settings):
+    #ToDo: Use cerberus to verify setting
     pass

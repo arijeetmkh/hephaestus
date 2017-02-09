@@ -43,7 +43,9 @@ class SQSWorker(threading.Thread):
             for message in queue.receive_messages(**receive_params):
                 workerLogger.info(message.body)
                 self.messageQueue.put(message)
-                message.delete()
+                if settings.SQS_MESSAGE_DELETE_POLICY == "immediate":
+                    message.delete()
+                    workerLogger.debug("Message deleted according to policy '%s'" % str(settings.SQS_MESSAGE_DELETE_POLICY))
             workerLogger.debug("Waiting between SQS requests for %d seconds" % settings.SQS_WAIT_BETWEEN_REQUESTS)
             time.sleep(settings.SQS_WAIT_BETWEEN_REQUESTS)
 
@@ -58,10 +60,20 @@ class MessageWorker(threading.Thread):
     def run(self):
         while True:
             message = self.messageQueue.get()
+            failure = False
             try:
                 self.transport.send(message)
             except ReceiverError:
+                failure = True
                 messageReceiverLogger.warning("Detected error in transport")
+
+            if settings.SQS_MESSAGE_DELETE_POLICY != "immediate":
+                if settings.SQS_MESSAGE_DELETE_POLICY == "after_message_processing":
+                    message.delete()
+                    workerLogger.debug("Message deleted according to policy '%s'" % str(settings.SQS_MESSAGE_DELETE_POLICY))
+                elif not failure and settings.SQS_MESSAGE_DELETE_POLICY == "after_successful_message_processing":
+                    message.delete()
+                    workerLogger.debug("Message deleted according to policy '%s'" % str(settings.SQS_MESSAGE_DELETE_POLICY))
 
 
 def start_workers(transport=None):
