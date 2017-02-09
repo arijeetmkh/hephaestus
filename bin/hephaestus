@@ -111,6 +111,6 @@ if __name__ == '__main__':
     startupLogger.info('Setting transports')
     transport = set_transports()
     startupLogger.info('verifying settings')
-    verify_settings("")
+    verify_settings()
     startupLogger.info('Starting workers')
     worker.start_workers(transport=transport)

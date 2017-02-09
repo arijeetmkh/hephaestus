@@ -125,6 +125,6 @@ def set_transports():
     return transport
 
 
-def verify_settings(settings):
+def verify_settings():
     #ToDo: Use cerberus to verify setting
-    pass
+    assert settings.SQS_MESSAGE_DELETE_POLICY in ('immediate', 'after_message_processing', 'after_successful_message_processing'), "Unknown message delete policy"
