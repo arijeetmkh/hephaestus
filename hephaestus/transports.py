@@ -105,7 +105,9 @@ class FlaskTransport(Transport):
 
     def load(self):
         self._app = self.setup_flask(project_path=self.conf['project_path'], config_object_path=self.conf['config_object_path'])
-        module = importlib.import_module(self.conf['class_import_path'])
+        with self._app.app_context():
+            module = importlib.import_module(self.conf['class_import_path'])
+
         klass = getattr(module, self.conf['class_name'], None)
         if not klass:
             raise TransportLoadError("Class '%s' not found or not of type 'MessageProcessor'" % self.conf['class_name'])
@@ -113,12 +115,13 @@ class FlaskTransport(Transport):
         self.klass = klass
 
     def send(self, message):
-        klass = self.klass()
-        try:
-            klass.process_message(message)
-        except Exception as exc:
-            transportLogger.exception("Transport received a message receiver exception")
-            raise ReceiverError(str(exc))
+        with self._app.app_context():
+            klass = self.klass()
+            try:
+                klass.process_message(message)
+            except Exception as exc:
+                transportLogger.exception("Transport received a message receiver exception")
+                raise ReceiverError(str(exc))
 
 
 class CustomTransport(Transport):
