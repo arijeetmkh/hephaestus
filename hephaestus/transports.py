@@ -56,7 +56,7 @@ class DjangoTransport(Transport):
         try:
             import django
         except ImportError:
-            raise TransportRequirementError('Unable to import Django')
+            raise TransportRequirementError('Unable to import %s' % cls._type.title())
 
         os.environ['DJANGO_SETTINGS_MODULE'] = settings_module
         sys.path.append(project_path)
@@ -67,6 +67,44 @@ class DjangoTransport(Transport):
 
     def load(self):
         self.setup_django(settings_module=self.conf['settings_module'], project_path=self.conf['project_path'])
+        module = importlib.import_module(self.conf['class_import_path'])
+        klass = getattr(module, self.conf['class_name'], None)
+        if not klass:
+            raise TransportLoadError("Class '%s' not found or not of type 'MessageProcessor'" % self.conf['class_name'])
+
+        self.klass = klass
+
+    def send(self, message):
+        klass = self.klass()
+        try:
+            klass.process_message(message)
+        except Exception as exc:
+            transportLogger.exception("Transport received a message receiver exception")
+            raise ReceiverError(str(exc))
+
+
+class FlaskTransport(Transport):
+    _type = "flask"
+
+    def __init__(self, *args, **kwargs):
+        super(FlaskTransport, self).__init__(*args, **kwargs)
+        self._app = None
+
+    @classmethod
+    def setup_flask(cls, config_object_path='', project_path=''):
+        try:
+            import flask
+        except ImportError:
+            raise TransportRequirementError('Unable to import %s' % cls._type.title())
+
+        sys.path.append(project_path)
+
+        app = flask.Flask(__name__)
+        app.config.from_object(config_object_path)
+        return app
+
+    def load(self):
+        self._app = self.setup_flask(project_path=self.conf['project_path'], config_object_path=self.conf['config_object_path'])
         module = importlib.import_module(self.conf['class_import_path'])
         klass = getattr(module, self.conf['class_name'], None)
         if not klass:
