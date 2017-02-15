@@ -14,6 +14,7 @@ except ImportError:
 
 workerLogger = logging.getLogger('hephaestus.worker')
 messageReceiverLogger = logging.getLogger('hephaestus.message_receiver')
+_shutdownEvent = threading.Event()
 
 
 class SQSWorker(threading.Thread):
@@ -38,7 +39,7 @@ class SQSWorker(threading.Thread):
         queue = sqs.get_queue_by_name(QueueName=settings.SQS_QUEUE_NAME)
         workerLogger.info("SQS Queue- %s" % str(queue))
         receive_params = self.init_receive_params()
-        while True:
+        while not _shutdownEvent.is_set():
             workerLogger.debug("Connecting to SQS to receive messages with params %s" % str(receive_params))
             for message in queue.receive_messages(**receive_params):
                 workerLogger.info(message.body)
@@ -58,7 +59,7 @@ class MessageWorker(threading.Thread):
         workerLogger.info('Message worker started - %s' % str(self.name))
 
     def run(self):
-        while True:
+        while not _shutdownEvent.is_set():
             message = self.messageQueue.get()
             failure = False
             try:
@@ -94,3 +95,8 @@ def start_workers(transport=None):
             transport=transport,
             name="MessageWorker-{worker_number}".format(worker_number=str(i))
         ).start()
+
+
+def clean_shutdown():
+    workerLogger.info('Received Interrupt. Starting clean shutdown')
+    _shutdownEvent.set()
