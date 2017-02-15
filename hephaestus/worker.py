@@ -27,7 +27,7 @@ class SQSWorker(threading.Thread):
     def init_receive_params():
         params = {
             'MaxNumberOfMessages': settings.SQS_MAX_NUMBER_MESSAGES,
-            'AttributeNames': 'All'
+            'AttributeNames': ['All']
         }
         if settings.SQS_VISIBILITY_TIMEOUT:
             params['VisibilityTimeout'] = settings.SQS_VISIBILITY_TIMEOUT
