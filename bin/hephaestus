@@ -7,7 +7,7 @@ import argparse
 import logging
 import hephaestus
 from pkg_resources import resource_filename
-from logging import config
+from logging import config as log_config
 
 try:
     import configparser
@@ -89,7 +89,7 @@ args = parser.parse_args()
 
 from hephaestus.conf import set_transports, set_config, get_log_config, verify_settings
 
-config.dictConfig(get_log_config(args.log_level))
+log_config.dictConfig(get_log_config(args.log_level))
 startupLogger = logging.getLogger('hephaestus.startup')
 startupLogger.info('Starting up Hephaestus')
 
@@ -113,6 +113,7 @@ if __name__ == '__main__':
     set_config(config, args)
     startupLogger.info('Setting transports')
     transport = set_transports()
+    log_config.dictConfig(get_log_config(args.log_level))
     startupLogger.info('verifying settings')
     verify_settings()
     startupLogger.info('Starting workers')

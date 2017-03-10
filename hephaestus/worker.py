@@ -79,6 +79,7 @@ class MessageWorker(threading.Thread):
 
 
 def start_workers(transport=None):
+    _shutdownEvent.clear()
     workerLogger.debug('Initializing internal message queue with size - %d' % settings.MESSAGE_QUEUE_MAX_SIZE)
     messageQueue = queue.Queue(maxsize=settings.MESSAGE_QUEUE_MAX_SIZE)
 
