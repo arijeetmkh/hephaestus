@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='hephaestus',
-    version='0.1.0',
+    version='0.1.1',
     description='Queue Consumer',
     author='Arijeet Mukherjee',
     author_email='arijeet.mkh@gmail.com',

@@ -120,7 +120,7 @@ if __name__ == '__main__':
     worker.start_workers(transport=transport)
     try:
         while 1:
-            time.sleep(0.5)
+            time.sleep(1)
     except (KeyboardInterrupt, SystemExit):
         startupLogger.info('Starting clean shutdown')
         worker.clean_shutdown()

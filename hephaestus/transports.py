@@ -65,6 +65,8 @@ class DjangoTransport(Transport):
         except django.core.exceptions.ImproperlyConfigured:
             raise TransportLoadError('Django setup failed')
 
+        django.db.connections.close_all()
+
     def load(self):
         self.setup_django(settings_module=self.conf['settings_module'], project_path=self.conf['project_path'])
         module = importlib.import_module(self.conf['class_import_path'])
@@ -75,12 +77,18 @@ class DjangoTransport(Transport):
         self.klass = klass
 
     def send(self, message):
+        try:
+            import django
+        except ImportError:
+            raise RuntimeError('Unable to import Django')
         klass = self.klass()
         try:
             klass.process_message(message)
         except Exception as exc:
             transportLogger.exception("Transport received a message receiver exception")
             raise ReceiverError(str(exc))
+        finally:
+            django.db.connection.close()
 
 
 class FlaskTransport(Transport):
