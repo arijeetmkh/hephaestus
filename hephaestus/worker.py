@@ -1,4 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from botocore.vendored.requests import ConnectionError, Timeout
+from botocore.exceptions import EndpointConnectionError
 import logging
 import threading
 import time
@@ -42,14 +44,19 @@ class SQSWorker(threading.Thread):
         receive_params = self.init_receive_params()
         while not _shutdownEvent.is_set():
             workerLogger.debug("Connecting to SQS to receive messages with params %s" % str(receive_params))
-            for message in queue.receive_messages(**receive_params):
-                workerLogger.info(message.body)
-                self.messageQueue.put(message)
-                if settings.SQS_MESSAGE_DELETE_POLICY == "immediate":
-                    message.delete()
-                    workerLogger.debug("Message deleted according to policy '%s'" % str(settings.SQS_MESSAGE_DELETE_POLICY))
-            workerLogger.debug("Waiting between SQS requests for %d seconds" % settings.SQS_WAIT_BETWEEN_REQUESTS)
-            time.sleep(settings.SQS_WAIT_BETWEEN_REQUESTS)
+            try:
+                for message in queue.receive_messages(**receive_params):
+                    workerLogger.info(message.body)
+                    self.messageQueue.put(message)
+                    if settings.SQS_MESSAGE_DELETE_POLICY == "immediate":
+                        message.delete()
+                        workerLogger.debug("Message deleted according to policy '%s'" % str(settings.SQS_MESSAGE_DELETE_POLICY))
+            except (ConnectionError, Timeout) as exc:
+                workerLogger.exception("Connection to queue failed. Retrying in %d seconds. Original exception: " % settings.RECONNECT_WAIT_TIME)
+                time.sleep(settings.RECONNECT_WAIT_TIME)
+            else:
+                workerLogger.debug("Waiting between SQS requests for %d seconds" % settings.SQS_WAIT_BETWEEN_REQUESTS)
+                time.sleep(settings.SQS_WAIT_BETWEEN_REQUESTS)
 
 
 class MessageWorker(threading.Thread):

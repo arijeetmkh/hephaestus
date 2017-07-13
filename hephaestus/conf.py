@@ -75,19 +75,23 @@ def get_boto_session():
 
 def set_config(config, args):
 
-    def get_config(key, config_section_key, config_get_type=None):
+    def get_config(key, config_section_key, config_get_type=None, default=None):
         arg = getattr(args, key, None)
         if arg:
             if config_get_type:
                 return config_get_type(arg)
             else:
                 return arg
-        config_section = config[config_section_key]
 
-        if not config_get_type:
-            return config_section.get(key)
-        elif config_get_type == int:
-            return config_section.getint(key)
+        config_section = config[config_section_key]
+        value = config_section.get(key)
+        if value:
+            if not config_get_type:
+                return value
+            elif config_get_type == int:
+                return config_section.getint(key)
+
+        return default
 
     _settings = {'AWS_KEY': get_config('aws_key', 'AWS_CREDENTIALS'),
                  'AWS_SECRET': get_config('aws_secret', 'AWS_CREDENTIALS'),
@@ -100,7 +104,8 @@ def set_config(config, args):
                  'SQS_MESSAGE_DELETE_POLICY': get_config('message_delete_policy', 'SQS_SETTINGS'),
                  'QUEUE_WORKERS': get_config('queue_workers', 'WORKER_SETTINGS', int),
                  'MESSAGE_PROCESSOR_WORKERS': get_config('message_processor_workers', 'WORKER_SETTINGS', int),
-                 'MESSAGE_QUEUE_MAX_SIZE': get_config('message_queue_max_size', 'WORKER_SETTINGS', int)}
+                 'MESSAGE_QUEUE_MAX_SIZE': get_config('message_queue_max_size', 'WORKER_SETTINGS', int),
+                 'RECONNECT_WAIT_TIME': get_config("reconnect_wait_time", "GENERAL", int, default=10)}
 
     transport_conf = get_config('message_transport_conf', 'GENERAL')
     if not transport_conf:
