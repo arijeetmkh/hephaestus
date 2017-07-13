@@ -83,6 +83,10 @@ parser.add_argument('-mtc', '--message-transport-conf',
                     dest="message_transport_conf",
                     action='store',
                     help='The transport configuration file location')
+parser.add_argument('-rwt', '--reconnect-wait-time',
+                    dest="reconnect_wait_time",
+                    action='store',
+                    help='Integer specifying how long to wait when queue connection fails before retrying')
 
 
 args = parser.parse_args()
