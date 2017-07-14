@@ -68,7 +68,10 @@ class MessageWorker(threading.Thread):
 
     def run(self):
         while not _shutdownEvent.is_set():
-            message = self.messageQueue.get()
+            try:
+                message = self.messageQueue.get(True, 10)
+            except queue.Empty:
+                continue
             failure = False
             try:
                 self.transport.send(message)
