@@ -8,8 +8,7 @@ import logging
 import hephaestus
 from pkg_resources import resource_filename
 from logging import config as log_config
-from hephaestus.signal_handlers import *
-
+from hephaestus.signal_handlers import signal_handler
 
 try:
     import configparser
