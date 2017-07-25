@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 from setuptools import setup
+import hephaestus
 
 setup(
     name='hephaestus',
-    version='0.1.1',
+    version=hephaestus.__version__,
     description='Queue Consumer',
     author='Arijeet Mukherjee',
     author_email='arijeet.mkh@gmail.com',

@@ -95,7 +95,7 @@ from hephaestus.conf import set_transports, set_config, get_log_config, verify_s
 
 log_config.dictConfig(get_log_config(args.log_level))
 startupLogger = logging.getLogger('hephaestus.startup')
-startupLogger.info('Starting up Hephaestus')
+startupLogger.info('Starting up Hephaestus:%s' % hephaestus.__version__)
 
 from hephaestus import worker
 
