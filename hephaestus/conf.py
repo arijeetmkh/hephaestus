@@ -109,7 +109,6 @@ def set_config(config, args):
                  'MESSAGE_QUEUE_WAIT_TIMEOUT': get_config('message_queue_wait_timeout', "WORKER_SETTINGS", int, default=10)
                  }
 
-
     transport_conf = get_config('message_transport_conf', 'GENERAL')
     if not transport_conf:
         transport_conf = resource_filename("hephaestus", "message_transport_conf.json")
