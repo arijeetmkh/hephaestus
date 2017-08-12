@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from botocore.vendored.requests import ConnectionError, Timeout
-from botocore.exceptions import EndpointConnectionError
 import logging
 import threading
 import time
@@ -43,6 +42,8 @@ class SQSWorker(threading.Thread):
         workerLogger.info("SQS Queue- %s" % str(queue))
         receive_params = self.init_receive_params()
         while not _shutdownEvent.is_set():
+            workerLogger.debug("Waiting between SQS requests for %d seconds" % settings.SQS_WAIT_BETWEEN_REQUESTS)
+            time.sleep(settings.SQS_WAIT_BETWEEN_REQUESTS)
             workerLogger.debug("Connecting to SQS to receive messages with params %s" % str(receive_params))
             try:
                 for message in queue.receive_messages(**receive_params):
@@ -54,9 +55,9 @@ class SQSWorker(threading.Thread):
             except (ConnectionError, Timeout) as exc:
                 workerLogger.exception("Connection to queue failed. Retrying in %d seconds. Original exception: " % settings.RECONNECT_WAIT_TIME)
                 time.sleep(settings.RECONNECT_WAIT_TIME)
-            else:
-                workerLogger.debug("Waiting between SQS requests for %d seconds" % settings.SQS_WAIT_BETWEEN_REQUESTS)
-                time.sleep(settings.SQS_WAIT_BETWEEN_REQUESTS)
+
+        if _shutdownEvent.is_set():
+            workerLogger.info('Exiting...')
 
 
 class MessageWorker(threading.Thread):
@@ -68,7 +69,11 @@ class MessageWorker(threading.Thread):
 
     def run(self):
         while not _shutdownEvent.is_set():
-            message = self.messageQueue.get()
+            try:
+                message = self.messageQueue.get(True, settings.MESSAGE_QUEUE_WAIT_TIMEOUT)
+            except queue.Empty:
+                workerLogger.debug("Message local queue wait timeout passed. Trying again")
+                continue
             failure = False
             try:
                 self.transport.send(message)
@@ -83,6 +88,9 @@ class MessageWorker(threading.Thread):
                 elif not failure and settings.SQS_MESSAGE_DELETE_POLICY == "after_successful_message_processing":
                     message.delete()
                     workerLogger.debug("Message deleted according to policy '%s'" % str(settings.SQS_MESSAGE_DELETE_POLICY))
+
+        if _shutdownEvent.is_set():
+            workerLogger.info('Exiting...')
 
 
 def start_workers(transport=None):
@@ -107,5 +115,8 @@ def start_workers(transport=None):
 
 
 def clean_shutdown():
-    workerLogger.info('Received Interrupt. Starting clean shutdown')
+    if _shutdownEvent.is_set():
+        workerLogger.warning('Clean shutdown already initiated. ** Cold shutdown not yet implemented **')
+    else:
+        workerLogger.info('Received Interrupt. Starting clean shutdown')
     _shutdownEvent.set()
