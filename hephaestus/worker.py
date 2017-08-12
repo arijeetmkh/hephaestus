@@ -68,7 +68,11 @@ class MessageWorker(threading.Thread):
 
     def run(self):
         while not _shutdownEvent.is_set():
-            message = self.messageQueue.get()
+            try:
+                message = self.messageQueue.get(True, settings.MESSAGE_QUEUE_WAIT_TIMEOUT)
+            except queue.Empty:
+                workerLogger.debug("Retrying to fetch data from queue")
+                continue
             failure = False
             try:
                 self.transport.send(message)

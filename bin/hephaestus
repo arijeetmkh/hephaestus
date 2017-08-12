@@ -8,6 +8,7 @@ import logging
 import hephaestus
 from pkg_resources import resource_filename
 from logging import config as log_config
+from hephaestus.signal_handlers import signal_handler
 
 try:
     import configparser
@@ -122,10 +123,3 @@ if __name__ == '__main__':
     verify_settings()
     startupLogger.info('Starting workers')
     worker.start_workers(transport=transport)
-    try:
-        while 1:
-            time.sleep(1)
-    except (KeyboardInterrupt, SystemExit):
-        startupLogger.info('Starting clean shutdown')
-        worker.clean_shutdown()
-        sys.exit(0)
