@@ -132,8 +132,28 @@ class FlaskTransport(Transport):
                 raise ReceiverError(str(exc))
 
 
-class CustomTransport(Transport):
-    """
-    A transport which behaves as an adaptor to the actual transport loaded at runtime
-    """
-    _type = "custom"
+class PythonTransport(Transport):
+    _type = "python"
+
+    def load(self):
+        project_path = self.conf['project_path']
+        if isinstance(project_path, str):
+            sys.path.append(self.conf['project_path'])
+        if isinstance(project_path, list):
+            for path in project_path:
+                sys.path.append(path)
+
+        module = importlib.import_module(self.conf['class_import_path'])
+        klass = getattr(module, self.conf['class_name'], None)
+        if not klass:
+            raise TransportLoadError("Class '%s' not found or not of type 'MessageProcessor'" % self.conf['class_name'])
+
+        self.klass = klass
+
+    def send(self, message):
+        klass = self.klass()
+        try:
+            klass.process_message(message)
+        except Exception as exc:
+            transportLogger.exception("Transport received a message receiver exception")
+            raise ReceiverError(str(exc))

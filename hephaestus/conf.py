@@ -4,7 +4,7 @@ import boto3
 import json
 
 from pkg_resources import resource_filename
-from .transports import DjangoTransport, CustomTransport, LoggerTransport, FlaskTransport
+from .transports import DjangoTransport, LoggerTransport, FlaskTransport, PythonTransport
 from .exceptions import *
 
 confLogger = logging.getLogger('hephaestus.conf')
@@ -17,13 +17,14 @@ class Settings(object):
         for k, v in settings.items():
             setattr(self, k, v)
 
+
 settings = Settings()
 
 transports = {
     "django": DjangoTransport,
     "flask": FlaskTransport,
+    "python": PythonTransport,
     "log": LoggerTransport,
-    "custom": CustomTransport
 }
 
 
