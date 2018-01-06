@@ -3,6 +3,7 @@ import os
 import sys
 import importlib
 import logging
+import json
 from .exceptions import *
 
 
@@ -154,6 +155,29 @@ class PythonTransport(Transport):
         klass = self.klass()
         try:
             klass.process_message(message)
+        except Exception as exc:
+            transportLogger.exception("Transport received a message receiver exception")
+            raise ReceiverError(str(exc))
+
+
+class LambdaTransport(Transport):
+    _type = "lambda"
+
+    def load(self):
+        import boto3
+        self.klass = boto3.session.Session(
+            aws_access_key_id=self.conf['aws_access_key_id'],
+            aws_secret_access_key=self.conf['aws_secret_access_key'],
+            region_name=self.conf['region_name']
+        ).resource('lambda')
+
+    def send(self, message):
+        try:
+            self.klass.invoke(
+                FunctionName=self.conf['FunctionName'],
+                InvocationType=self.conf['InvocationType'],
+                Payload=json.dumps(message)
+            )
         except Exception as exc:
             transportLogger.exception("Transport received a message receiver exception")
             raise ReceiverError(str(exc))
