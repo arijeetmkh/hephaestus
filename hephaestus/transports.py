@@ -169,7 +169,7 @@ class LambdaTransport(Transport):
             aws_access_key_id=self.conf['aws_access_key_id'],
             aws_secret_access_key=self.conf['aws_secret_access_key'],
             region_name=self.conf['region_name']
-        ).resource('lambda')
+        ).client('lambda')
 
     def send(self, message):
         try:
