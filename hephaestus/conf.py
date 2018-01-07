@@ -4,7 +4,7 @@ import boto3
 import json
 
 from pkg_resources import resource_filename
-from .transports import DjangoTransport, LoggerTransport, FlaskTransport, PythonTransport
+from .transports import DjangoTransport, LoggerTransport, FlaskTransport, PythonTransport, LambdaTransport
 from .exceptions import *
 
 confLogger = logging.getLogger('hephaestus.conf')
@@ -24,6 +24,7 @@ transports = {
     "django": DjangoTransport,
     "flask": FlaskTransport,
     "python": PythonTransport,
+    "lambda": LambdaTransport,
     "log": LoggerTransport,
 }
 
@@ -136,4 +137,4 @@ def set_transports():
 
 def verify_settings():
     #ToDo: Use cerberus to verify setting
-    assert settings.SQS_MESSAGE_DELETE_POLICY in ('immediate', 'after_message_processing', 'after_successful_message_processing'), "Unknown message delete policy"
+    assert settings.SQS_MESSAGE_DELETE_POLICY in ('immediate', 'after_message_processing', 'after_successful_message_processing', "no_delete"), "Unknown message delete policy"
