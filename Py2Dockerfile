@@ -12,6 +12,8 @@ ENV STD_ERR_LOGFILE /var/log/hephaestus.err.log
 
 RUN pip install -e 'git+https://github.com/arijeetmkh/hephaestus.git@v0.2.1#egg=hephaestus'
 
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY supervisord.conf /etc/supervisor/conf.d/
+COPY hephaestus/hephaestus.conf /etc/hephaestus/hephaestus.conf
+COPY hephaestus/message_transport_conf.json /etc/hephaestus//message_transport_conf.json
 
-ENTRYPOINT ["supervisord"]
+ENTRYPOINT ["supervisord", "-n"]
