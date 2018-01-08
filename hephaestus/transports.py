@@ -3,8 +3,8 @@ import os
 import sys
 import importlib
 import logging
-import json
 from .exceptions import *
+from .encoders import SQSMessageEncoder
 
 
 transportLogger = logging.getLogger('hephaestus.transport')
@@ -172,12 +172,15 @@ class LambdaTransport(Transport):
         ).client('lambda')
 
     def send(self, message):
+        payload = SQSMessageEncoder().encode(message)
         try:
-            self.klass.invoke(
+            response = self.klass.invoke(
                 FunctionName=self.conf['FunctionName'],
                 InvocationType=self.conf['InvocationType'],
-                Payload=json.dumps(message)
+                Payload=payload
             )
         except Exception as exc:
             transportLogger.exception("Transport received a message receiver exception")
             raise ReceiverError(str(exc))
+        else:
+            transportLogger.info("Lambda Invocation complete with response: %s" % response)

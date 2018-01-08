@@ -108,7 +108,7 @@ def set_config(config, args):
                  'MESSAGE_PROCESSOR_WORKERS': get_config('message_processor_workers', 'WORKER_SETTINGS', int),
                  'MESSAGE_QUEUE_MAX_SIZE': get_config('message_queue_max_size', 'WORKER_SETTINGS', int),
                  'RECONNECT_WAIT_TIME': get_config("reconnect_wait_time", "GENERAL", int, default=10),
-                 'MESSAGE_QUEUE_WAIT_TIMEOUT': get_config('message_queue_wait_timeout', "WORKER_SETTINGS", int, default=10)
+                 'MESSAGE_QUEUE_WAIT_TIMEOUT': get_config('message_queue_wait_timeout', "WORKER_SETTINGS", int, default=20)
                  }
 
     transport_conf = get_config('message_transport_conf', 'GENERAL')
