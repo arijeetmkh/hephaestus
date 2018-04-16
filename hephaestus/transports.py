@@ -19,7 +19,7 @@ class Transport(object):
         self.conf = conf
         self.klass = None
 
-    def internal_setup(self):
+    def __internal_setup(self):
         envs = self.conf.get('env', ())
         if not envs:
             return
@@ -31,7 +31,7 @@ class Transport(object):
             os.environ[env] = value
 
     def setup(self):
-        self.internal_setup()
+        self.__internal_setup()
         self.load()
         self.send_setup_hook()
 
