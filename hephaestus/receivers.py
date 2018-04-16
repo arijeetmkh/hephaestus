@@ -10,3 +10,6 @@ class MessageReceiver(object):
     @abc.abstractmethod
     def process_message(self, message):
         raise NotImplementedError
+
+    def setup_hook(self, conf):
+        pass
