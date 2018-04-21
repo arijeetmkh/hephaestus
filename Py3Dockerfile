@@ -15,6 +15,6 @@ RUN pip install -e 'git+https://github.com/arijeetmkh/hephaestus.git@v0.2.3#egg=
 
 COPY supervisord.conf /etc/supervisor/conf.d/
 COPY hephaestus/hephaestus.conf /etc/hephaestus/hephaestus.conf
-COPY hephaestus/message_transport_conf.json /etc/hephaestus//message_transport_conf.json
+COPY hephaestus/message_transport_conf.json /etc/hephaestus/message_transport_conf.json
 
 ENTRYPOINT ["supervisord", "-n"]
