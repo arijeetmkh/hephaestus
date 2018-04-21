@@ -1,6 +1,6 @@
 FROM python:2.7-slim
 LABEL maintainer "https://github.com/arijeetmkh"
-ARG version=0.2.2
+ARG version=0.2.3
 
 RUN apt-get update && apt-get install -y supervisor git
 
@@ -10,7 +10,7 @@ ENV LOG_LEVEL INFO
 ENV STD_OUT_LOGFILE /var/log/hephaestus.out.log
 ENV STD_ERR_LOGFILE /var/log/hephaestus.err.log
 
-RUN pip install -e 'git+https://github.com/arijeetmkh/hephaestus.git@v0.2.2#egg=hephaestus'
+RUN pip install -e 'git+https://github.com/arijeetmkh/hephaestus.git@v0.2.3#egg=hephaestus'
 
 COPY supervisord.conf /etc/supervisor/conf.d/
 COPY hephaestus/hephaestus.conf /etc/hephaestus/hephaestus.conf

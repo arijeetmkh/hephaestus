@@ -131,7 +131,6 @@ def set_transports():
     Transport = load_transport(message_transport_conf['type'])
     transport = Transport(conf=message_transport_conf)
     transport.setup()
-    transport.load()
     return transport
 
 

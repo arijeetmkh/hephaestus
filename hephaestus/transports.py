@@ -19,7 +19,7 @@ class Transport(object):
         self.conf = conf
         self.klass = None
 
-    def setup(self):
+    def __internal_setup(self):
         envs = self.conf.get('env', ())
         if not envs:
             return
@@ -29,6 +29,18 @@ class Transport(object):
         for env, value in envs.items():
             transportLogger.debug('ENV: %s : %s' % (str(env), str(value)))
             os.environ[env] = value
+
+    def setup(self):
+        self.__internal_setup()
+        self.load()
+        self.send_setup_hook()
+
+    def send_setup_hook(self):
+        if self.klass is not None:
+            try:
+                self.klass().setup_hook(self.conf)
+            except AttributeError:
+                pass
 
     def load(self):
         raise NotImplementedError
