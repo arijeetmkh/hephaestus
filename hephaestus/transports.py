@@ -37,7 +37,10 @@ class Transport(object):
 
     def send_setup_hook(self):
         if self.klass is not None:
-            self.klass.setup_hook(self.conf)
+            try:
+                self.klass().setup_hook(self.conf)
+            except AttributeError:
+                pass
 
     def load(self):
         raise NotImplementedError

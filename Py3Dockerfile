@@ -10,8 +10,8 @@ ENV PROG_NAME hephaestus
 ENV STD_OUT_LOGFILE /var/log/hephaestus.out.log
 ENV STD_ERR_LOGFILE /var/log/hephaestus.err.log
 
-ARG version=0.2.2
-RUN pip install -e 'git+https://github.com/arijeetmkh/hephaestus.git@v0.2.2#egg=hephaestus'
+ARG version=0.2.3
+RUN pip install -e 'git+https://github.com/arijeetmkh/hephaestus.git@v0.2.3#egg=hephaestus'
 
 COPY supervisord.conf /etc/supervisor/conf.d/
 COPY hephaestus/hephaestus.conf /etc/hephaestus/hephaestus.conf
