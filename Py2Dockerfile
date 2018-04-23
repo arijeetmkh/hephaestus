@@ -1,6 +1,6 @@
 FROM python:2.7-slim
 LABEL maintainer "https://github.com/arijeetmkh"
-ARG version=0.2.3
+ARG version=0.2.4
 
 RUN apt-get update && apt-get install -y supervisor git
 
