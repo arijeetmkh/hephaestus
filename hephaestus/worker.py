@@ -90,6 +90,8 @@ class MessageWorker(threading.Thread):
                     message.delete()
                     workerLogger.debug("Message deleted according to policy '%s'" % str(settings.SQS_MESSAGE_DELETE_POLICY))
 
+            self.messageQueue.task_done()
+
         if _MessageWorkerShutdownEvent.is_set():
             workerLogger.info('Exiting...')
 
@@ -124,21 +126,26 @@ def start_workers(transport=None):
 
 
 def clean_shutdown():
-    if _SQSWorkerShutdownEvent.is_set() or _MessageWorkerShutdownEvent.is_set():
-        workerLogger.warning('Clean shutdown already initiated. ** Cold shutdown not yet implemented **')
-    else:
-        workerLogger.info('Received Interrupt. Starting clean shutdown')
+    shutdownLogger = logging.getLogger('hephaestus.shutdown')
 
-    workerLogger.debug("Sending shutdown event to SQS Workers")
+    if _SQSWorkerShutdownEvent.is_set() or _MessageWorkerShutdownEvent.is_set():
+        shutdownLogger.warning('Clean shutdown already initiated. ** Cold shutdown not yet implemented **')
+    else:
+        shutdownLogger.info('Received Interrupt. Starting clean shutdown')
+
+    shutdownLogger.debug("Sending shutdown event to SQS Workers")
     _SQSWorkerShutdownEvent.set()
     [_.join() for _ in _SQSWorkers]
 
-    workerLogger.info("All SQS Workers exited")
+    shutdownLogger.info("All SQS Workers exited")
 
-    while not _MessageWorkers[0].messageQueue.empty():
-        workerLogger.debug("Local message queue not empty. Waiting...")
-        time.sleep(0.5)
+    shutdownLogger.debug("Waiting for local message queue to empty...")
+    if _MessageWorkers:
+        _MessageWorkers[0].messageQueue.join()
+    shutdownLogger.debug("Local Message queue empty")
 
     if _MessageWorkers:
         workerLogger.debug("Sending shutdown event to Message Workers")
         _MessageWorkerShutdownEvent.set()
+
+    shutdownLogger.info("Clean shutdown complete")
