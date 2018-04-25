@@ -106,7 +106,7 @@ def set_config(config, args):
                  'SQS_MESSAGE_DELETE_POLICY': get_config('message_delete_policy', 'SQS_SETTINGS'),
                  'QUEUE_WORKERS': get_config('queue_workers', 'WORKER_SETTINGS', int),
                  'MESSAGE_PROCESSOR_WORKERS': get_config('message_processor_workers', 'WORKER_SETTINGS', int),
-                 'MESSAGE_QUEUE_MAX_SIZE': get_config('message_queue_max_size', 'WORKER_SETTINGS', int),
+                 'MESSAGE_QUEUE_MAX_SIZE': get_config('message_queue_max_size', 'WORKER_SETTINGS', int, default=100),
                  'RECONNECT_WAIT_TIME': get_config("reconnect_wait_time", "GENERAL", int, default=10),
                  'MESSAGE_QUEUE_WAIT_TIMEOUT': get_config('message_queue_wait_timeout', "WORKER_SETTINGS", int, default=20)
                  }
